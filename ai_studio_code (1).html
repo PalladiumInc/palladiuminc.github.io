@@ -1,0 +1,1236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pallink — Sink or Float Calculator</title>
+  <style>
+    :root {
+      --bg: #fffaf5;
+      --surface: #ffffff;
+      --text: #1c1917;
+      --muted: #78716c;
+      --border: #fed7aa;
+      --border-soft: #e7e5e4;
+      --primary: #f97316;
+      --primary-hover: #ea580c;
+      --primary-light: #fff7ed;
+      --sink-bg: #fef2f2;
+      --sink-text: #b91c1c;
+      --float-bg: #ecfdf5;
+      --float-text: #047857;
+      --neutral-bg: #f5f5f4;
+      --neutral-text: #57534e;
+      --radius: 14px;
+      --shadow: 0 4px 20px rgba(28, 25, 23, 0.06);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      min-height: 100vh;
+      padding: 24px 16px 40px;
+    }
+
+    .container {
+      max-width: 1080px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #fb923c, #ea580c);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-weight: 800;
+      font-size: 1.1rem;
+      box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
+    }
+
+    header h1 {
+      font-size: 2rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: var(--text);
+    }
+
+    header p {
+      color: var(--muted);
+      font-size: 0.95rem;
+      margin-top: 4px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1.15fr;
+      gap: 24px;
+      align-items: start;
+      margin-bottom: 24px;
+    }
+
+    @media (max-width: 840px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 24px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border-soft);
+    }
+
+    .card-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: var(--text);
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #44403c;
+      margin-bottom: 6px;
+    }
+
+    .input-row {
+      display: flex;
+      gap: 10px;
+    }
+
+    .input-row > * {
+      flex: 1;
+    }
+
+    input[type="number"],
+    select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border-soft);
+      border-radius: 9px;
+      font-size: 0.95rem;
+      color: var(--text);
+      background: #fff;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      outline: none;
+    }
+
+    input[type="number"]:focus,
+    select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.18);
+    }
+
+    .shape-selector {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .shape-btn {
+      border: 1px solid var(--border-soft);
+      background: #fff;
+      border-radius: 10px;
+      padding: 10px 8px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--muted);
+      transition: all 0.15s;
+    }
+
+    .shape-btn:hover {
+      border-color: #fdba74;
+      color: var(--text);
+    }
+
+    .shape-btn.active {
+      border-color: var(--primary);
+      background: var(--primary-light);
+      color: var(--primary-hover);
+    }
+
+    .shape-btn svg {
+      width: 24px;
+      height: 24px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
+    }
+
+    .toggle-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      background: #f5f5f4;
+      padding: 4px;
+      border-radius: 10px;
+      gap: 4px;
+    }
+
+    .toggle-btn {
+      border: none;
+      background: transparent;
+      padding: 8px;
+      border-radius: 7px;
+      font-size: 0.84rem;
+      font-weight: 600;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .toggle-btn.active {
+      background: #fff;
+      color: var(--primary-hover);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    }
+
+    /* Results & Tank */
+    .result-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .badge {
+      padding: 5px 12px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .badge.sink { background: var(--sink-bg); color: var(--sink-text); }
+    .badge.float { background: var(--float-bg); color: var(--float-text); }
+    .badge.neutral { background: var(--neutral-bg); color: var(--neutral-text); }
+
+    .hero-metric {
+      background: var(--primary-light);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin-bottom: 16px;
+    }
+
+    .hero-label {
+      font-size: 0.8rem;
+      color: #9a3412;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .hero-value {
+      font-size: 2.25rem;
+      font-weight: 800;
+      color: var(--text);
+      letter-spacing: -0.02em;
+      margin-top: 2px;
+    }
+
+    .hero-sub {
+      font-size: 0.85rem;
+      color: #7c2d12;
+      margin-top: 2px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    @media (max-width: 520px) {
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .stat-box {
+      background: #fafaf9;
+      border: 1px solid var(--border-soft);
+      border-radius: 10px;
+      padding: 10px 12px;
+    }
+
+    .stat-label {
+      font-size: 0.74rem;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .stat-val {
+      font-size: 0.96rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-top: 2px;
+    }
+
+    /* Water Tank Canvas */
+    .tank-wrapper {
+      position: relative;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border-soft);
+      background: #e0f2fe;
+    }
+
+    #tankCanvas {
+      display: block;
+      width: 100%;
+      height: 270px;
+    }
+
+    .tank-controls {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 12px;
+      font-size: 0.82rem;
+      color: var(--muted);
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn-replay {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 0.84rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+    }
+
+    .btn-replay:hover {
+      background: var(--primary-hover);
+    }
+
+    .btn-replay:active {
+      transform: scale(0.98);
+    }
+
+    /* Bottom Graphs Section */
+    .graphs-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    @media (max-width: 760px) {
+      .graphs-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .graph-box {
+      background: #fafaf9;
+      border: 1px solid var(--border-soft);
+      border-radius: 12px;
+      padding: 14px;
+    }
+
+    .graph-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .graph-title {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .graph-legend {
+      font-size: 0.76rem;
+      color: var(--muted);
+    }
+
+    .graph-canvas {
+      display: block;
+      width: 100%;
+      height: 210px;
+    }
+
+    .physics-note {
+      margin-top: 14px;
+      font-size: 0.78rem;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="brand">
+        <div class="brand-icon">P</div>
+        <h1>Pallink</h1>
+      </div>
+      <p>Hydrodynamic sink &amp; float time calculator under normal Earth gravity (9.81 m/s²)</p>
+    </header>
+
+    <div class="grid">
+      <!-- Left Column: Inputs -->
+      <div class="card">
+        <div class="card-title">Object &amp; Environment</div>
+
+        <div class="form-group">
+          <label>Object Shape</label>
+          <div class="shape-selector" id="shapeSelector">
+            <button type="button" class="shape-btn active" data-shape="sphere">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/></svg>
+              Sphere
+            </button>
+            <button type="button" class="shape-btn" data-shape="cube">
+              <svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/></svg>
+              Cube
+            </button>
+            <button type="button" class="shape-btn" data-shape="cylinder">
+              <svg viewBox="0 0 24 24"><ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v12c0 1.66 3.13 3 7 3s7-1.34 7-3V6"/></svg>
+              Cylinder
+            </button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="input-row">
+            <div>
+              <label id="dim1Label" for="dim1">Diameter</label>
+              <input type="number" id="dim1" value="10" min="0.1" step="any" />
+            </div>
+            <div id="dim2Container" style="display: none;">
+              <label for="dim2">Height</label>
+              <input type="number" id="dim2" value="15" min="0.1" step="any" />
+            </div>
+            <div style="max-width: 90px;">
+              <label for="sizeUnit">Unit</label>
+              <select id="sizeUnit">
+                <option value="cm" selected>cm</option>
+                <option value="m">m</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="material">Material Preset</label>
+          <select id="material">
+            <option value="7850" selected>Steel (7,850 kg/m³)</option>
+            <option value="2700">Aluminum (2,700 kg/m³)</option>
+            <option value="2400">Concrete (2,400 kg/m³)</option>
+            <option value="2500">Glass (2,500 kg/m³)</option>
+            <option value="19300">Gold (19,300 kg/m³)</option>
+            <option value="1180">Acrylic / PVC (1,180 kg/m³)</option>
+            <option value="917">Ice (917 kg/m³)</option>
+            <option value="750">Oak Wood (750 kg/m³)</option>
+            <option value="500">Pine Wood (500 kg/m³)</option>
+            <option value="240">Cork (240 kg/m³)</option>
+            <option value="custom">Custom Density...</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="density">Object Density (kg/m³)</label>
+          <input type="number" id="density" value="7850" min="1" step="any" />
+        </div>
+
+        <div class="form-group">
+          <label for="depth">Water Depth (meters)</label>
+          <input type="number" id="depth" value="10" min="0.1" step="any" />
+        </div>
+
+        <div class="form-group" style="margin-bottom: 0;">
+          <label>Water Type</label>
+          <div class="toggle-group" id="waterType">
+            <button type="button" class="toggle-btn active" data-rho="1000">Fresh Water (1000 kg/m³)</button>
+            <button type="button" class="toggle-btn" data-rho="1025">Seawater (1025 kg/m³)</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Results & Visualizer -->
+      <div class="card">
+        <div class="result-header">
+          <div class="card-title" style="margin-bottom: 0;">Simulation Results</div>
+          <span class="badge sink" id="outcomeBadge">Sinks</span>
+        </div>
+
+        <div class="hero-metric">
+          <div class="hero-label" id="heroLabel">Time to Reach Bottom</div>
+          <div class="hero-value" id="heroTime">0.00 s</div>
+          <div class="hero-sub" id="heroSub">Distance: 10 m</div>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-box">
+            <div class="stat-label">Terminal Velocity</div>
+            <div class="stat-val" id="statVt">—</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label" id="statVfinalLabel">Impact Velocity</div>
+            <div class="stat-val" id="statVfinal">—</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">Object Mass</div>
+            <div class="stat-val" id="statMass">—</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">Net Buoyant Force</div>
+            <div class="stat-val" id="statForce">—</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">Drag Coeff. (C<sub>d</sub>)</div>
+            <div class="stat-val" id="statCd">—</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label" id="statExtraLabel">Specific Gravity</div>
+            <div class="stat-val" id="statExtra">—</div>
+          </div>
+        </div>
+
+        <div class="tank-wrapper">
+          <canvas id="tankCanvas"></canvas>
+        </div>
+
+        <div class="tank-controls">
+          <span id="animStatus">Playback: 1.0x | t = 0.00 s</span>
+          <button type="button" class="btn-replay" id="replayBtn">Replay Animation</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Row: Motion Graphs -->
+    <div class="card">
+      <div class="card-title" style="margin-bottom: 14px;">
+        <span>Motion &amp; Velocity Graphs</span>
+        <span style="font-size: 0.8rem; font-weight: 500; color: var(--muted);">Synchronized with tank simulation</span>
+      </div>
+
+      <div class="graphs-grid">
+        <div class="graph-box">
+          <div class="graph-header">
+            <span class="graph-title">Depth vs. Time</span>
+            <span class="graph-legend">0 m = Water Surface</span>
+          </div>
+          <canvas id="depthGraph" class="graph-canvas"></canvas>
+        </div>
+
+        <div class="graph-box">
+          <div class="graph-header">
+            <span class="graph-title">Speed vs. Time</span>
+            <span class="graph-legend" id="vtLegend">Dashed = Terminal Velocity</span>
+          </div>
+          <canvas id="velocityGraph" class="graph-canvas"></canvas>
+        </div>
+      </div>
+
+      <p class="physics-note">
+        Model assumes standard Earth gravity (9.81 m/s²), water viscosity (0.001 Pa·s), added-mass inertia (C<sub>m</sub> = 0.5), and blended Stokes + quadratic hydrodynamic drag. Floating objects rise from the specified depth and settle at their true equilibrium waterline.
+      </p>
+    </div>
+  </div>
+
+  <script>
+    const G = 9.81;
+    const MU = 0.001002;
+    const ADDED_MASS_COEFF = 0.5;
+
+    let state = {
+      shape: 'sphere',
+      dim1: 10,
+      dim2: 15,
+      sizeUnit: 'cm',
+      density: 7850,
+      depth: 10,
+      waterDensity: 1000
+    };
+
+    let simResult = null;
+    let animFrame = null;
+    let animStartTime = null;
+    let bubbles = [];
+
+    // DOM Elements
+    const shapeBtns = document.querySelectorAll('.shape-btn');
+    const dim1Input = document.getElementById('dim1');
+    const dim2Input = document.getElementById('dim2');
+    const dim1Label = document.getElementById('dim1Label');
+    const dim2Container = document.getElementById('dim2Container');
+    const sizeUnitSelect = document.getElementById('sizeUnit');
+    const materialSelect = document.getElementById('material');
+    const densityInput = document.getElementById('density');
+    const depthInput = document.getElementById('depth');
+    const waterBtns = document.querySelectorAll('#waterType .toggle-btn');
+
+    const outcomeBadge = document.getElementById('outcomeBadge');
+    const heroLabel = document.getElementById('heroLabel');
+    const heroTime = document.getElementById('heroTime');
+    const heroSub = document.getElementById('heroSub');
+    const statVt = document.getElementById('statVt');
+    const statVfinalLabel = document.getElementById('statVfinalLabel');
+    const statVfinal = document.getElementById('statVfinal');
+    const statMass = document.getElementById('statMass');
+    const statForce = document.getElementById('statForce');
+    const statCd = document.getElementById('statCd');
+    const statExtraLabel = document.getElementById('statExtraLabel');
+    const statExtra = document.getElementById('statExtra');
+    const animStatus = document.getElementById('animStatus');
+    const replayBtn = document.getElementById('replayBtn');
+
+    const tankCanvas = document.getElementById('tankCanvas');
+    const tankCtx = tankCanvas.getContext('2d');
+    const depthCanvas = document.getElementById('depthGraph');
+    const depthCtx = depthCanvas.getContext('2d');
+    const velCanvas = document.getElementById('velocityGraph');
+    const velCtx = velCanvas.getContext('2d');
+
+    // Event Listeners
+    shapeBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        shapeBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        state.shape = btn.dataset.shape;
+        updateShapeUI();
+        runCalculation();
+      });
+    });
+
+    waterBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        waterBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        state.waterDensity = parseFloat(btn.dataset.rho);
+        runCalculation();
+      });
+    });
+
+    materialSelect.addEventListener('change', () => {
+      if (materialSelect.value !== 'custom') {
+        densityInput.value = materialSelect.value;
+        state.density = parseFloat(materialSelect.value);
+        runCalculation();
+      }
+    });
+
+    densityInput.addEventListener('input', () => {
+      const val = parseFloat(densityInput.value);
+      if (!isNaN(val) && val > 0) {
+        state.density = val;
+        let matched = false;
+        for (const opt of materialSelect.options) {
+          if (opt.value === String(val)) {
+            materialSelect.value = opt.value;
+            matched = true;
+            break;
+          }
+        }
+        if (!matched) materialSelect.value = 'custom';
+        runCalculation();
+      }
+    });
+
+    [dim1Input, dim2Input, depthInput].forEach(el => {
+      el.addEventListener('input', () => {
+        state.dim1 = Math.max(0.01, parseFloat(dim1Input.value) || 0.01);
+        state.dim2 = Math.max(0.01, parseFloat(dim2Input.value) || 0.01);
+        state.depth = Math.max(0.05, parseFloat(depthInput.value) || 0.05);
+        runCalculation();
+      });
+    });
+
+    sizeUnitSelect.addEventListener('change', () => {
+      state.sizeUnit = sizeUnitSelect.value;
+      runCalculation();
+    });
+
+    replayBtn.addEventListener('click', () => {
+      startAnimation();
+    });
+
+    function updateShapeUI() {
+      if (state.shape === 'sphere') {
+        dim1Label.textContent = 'Diameter';
+        dim2Container.style.display = 'none';
+      } else if (state.shape === 'cube') {
+        dim1Label.textContent = 'Side Length';
+        dim2Container.style.display = 'none';
+      } else {
+        dim1Label.textContent = 'Diameter';
+        dim2Container.style.display = 'block';
+      }
+    }
+
+    function getGeometry() {
+      const scale = state.sizeUnit === 'cm' ? 0.01 : 1;
+      const d1 = state.dim1 * scale;
+      const d2 = state.dim2 * scale;
+
+      let volume, area, cd, eqDiameter;
+
+      if (state.shape === 'sphere') {
+        const r = d1 / 2;
+        volume = (4 / 3) * Math.PI * Math.pow(r, 3);
+        area = Math.PI * r * r;
+        cd = 0.47;
+        eqDiameter = d1;
+      } else if (state.shape === 'cube') {
+        volume = Math.pow(d1, 3);
+        area = d1 * d1;
+        cd = 1.05;
+        eqDiameter = d1 * 1.24;
+      } else {
+        const r = d1 / 2;
+        volume = Math.PI * r * r * d2;
+        area = Math.PI * r * r;
+        cd = 0.82;
+        eqDiameter = Math.cbrt((6 * volume) / Math.PI);
+      }
+
+      return { volume, area, cd, eqDiameter };
+    }
+
+    function formatTime(seconds) {
+      if (!isFinite(seconds)) return '∞';
+      if (seconds < 0.01) return (seconds * 1000).toFixed(2) + ' ms';
+      if (seconds < 60) return seconds.toFixed(2) + ' s';
+      if (seconds < 3600) {
+        const m = Math.floor(seconds / 60);
+        const s = (seconds % 60).toFixed(1);
+        return `${m}m ${s}s`;
+      }
+      const h = Math.floor(seconds / 3600);
+      const m = Math.floor((seconds % 3600) / 60);
+      return `${h}h ${m}m`;
+    }
+
+    function formatMass(kg) {
+      if (kg < 0.001) return (kg * 1e6).toFixed(2) + ' mg';
+      if (kg < 1) return (kg * 1000).toFixed(1) + ' g';
+      if (kg >= 1000) return (kg / 1000).toFixed(2) + ' t';
+      return kg.toFixed(2) + ' kg';
+    }
+
+    function runCalculation() {
+      const { volume, area, cd, eqDiameter } = getGeometry();
+      const rhoObj = state.density;
+      const rhoWater = state.waterDensity;
+      const depth = state.depth;
+
+      const mass = rhoObj * volume;
+      const effMass = (rhoObj + ADDED_MASS_COEFF * rhoWater) * volume;
+      const netForce = Math.abs(rhoObj - rhoWater) * volume * G;
+      const outcome = rhoObj > rhoWater ? 'sink' : rhoObj < rhoWater ? 'float' : 'neutral';
+
+      const k1 = 3 * Math.PI * MU * eqDiameter;
+      const k2 = 0.5 * rhoWater * cd * area;
+
+      let totalTime = 0;
+      let vt = 0;
+      let finalVelocity = 0;
+      const trajectory = [];
+
+      if (outcome !== 'neutral') {
+        vt = (-k1 + Math.sqrt(k1 * k1 + 4 * k2 * netForce)) / (2 * k2);
+        const tau = (effMass * vt) / netForce;
+        const dt = Math.min(0.01, Math.max(1e-5, tau / 40));
+
+        let t = 0;
+        let y = 0;
+        let v = 0;
+        let steps = 0;
+        const maxSteps = 60000;
+
+        trajectory.push({ t: 0, y: 0, v: 0 });
+        const accel = (vel) => (netForce - (k1 * vel + k2 * vel * vel)) / effMass;
+
+        while (y < depth && steps < maxSteps) {
+          const kv1 = accel(v);
+          const ky1 = v;
+
+          const kv2 = accel(v + 0.5 * dt * kv1);
+          const ky2 = v + 0.5 * dt * kv1;
+
+          const kv3 = accel(v + 0.5 * dt * kv2);
+          const ky3 = v + 0.5 * dt * kv2;
+
+          const kv4 = accel(v + dt * kv3);
+          const ky4 = v + dt * kv3;
+
+          v += (dt / 6) * (kv1 + 2 * kv2 + 2 * kv3 + kv4);
+          y += (dt / 6) * (ky1 + 2 * ky2 + 2 * ky3 + ky4);
+          t += dt;
+          steps++;
+
+          if (steps % 8 === 0 || y >= depth) {
+            trajectory.push({ t, y: Math.min(y, depth), v });
+          }
+
+          if (v >= 0.9995 * vt && y < depth) {
+            const remaining = depth - y;
+            const remTime = remaining / vt;
+            // Add intermediate point for clean graph line
+            trajectory.push({ t: t + remTime * 0.5, y: y + remaining * 0.5, v: vt });
+            t += remTime;
+            y = depth;
+            v = vt;
+            trajectory.push({ t, y: depth, v: vt });
+            break;
+          }
+        }
+
+        if (y < depth) {
+          t += (depth - y) / Math.max(v, vt * 0.99);
+          trajectory.push({ t, y: depth, v: vt });
+        }
+
+        totalTime = t;
+        finalVelocity = v;
+      }
+
+      simResult = {
+        outcome,
+        totalTime,
+        vt,
+        finalVelocity,
+        mass,
+        netForce,
+        cd,
+        depth,
+        rhoObj,
+        rhoWater,
+        trajectory
+      };
+
+      updateUI();
+      startAnimation();
+    }
+
+    function updateUI() {
+      const r = simResult;
+
+      outcomeBadge.className = 'badge ' + r.outcome;
+      if (r.outcome === 'sink') {
+        outcomeBadge.textContent = 'Sinks';
+        heroLabel.textContent = 'Time to Reach Bottom';
+        heroTime.textContent = formatTime(r.totalTime);
+        heroSub.textContent = `Sinking ${r.depth} m from surface to seabed`;
+        statVfinalLabel.textContent = 'Impact Velocity';
+        statExtraLabel.textContent = 'Specific Gravity';
+        statExtra.textContent = (r.rhoObj / r.rhoWater).toFixed(2);
+      } else if (r.outcome === 'float') {
+        outcomeBadge.textContent = 'Floats';
+        heroLabel.textContent = 'Time to Rise to Surface';
+        heroTime.textContent = formatTime(r.totalTime);
+        const submergedPct = ((r.rhoObj / r.rhoWater) * 100).toFixed(1);
+        heroSub.textContent = `Rises from ${r.depth} m depth • Settles ${submergedPct}% submerged`;
+        statVfinalLabel.textContent = 'Surface Velocity';
+        statExtraLabel.textContent = 'Submerged at Surface';
+        statExtra.textContent = `${submergedPct}%`;
+      } else {
+        outcomeBadge.textContent = 'Neutrally Buoyant';
+        heroLabel.textContent = 'Equilibrium';
+        heroTime.textContent = 'Suspended';
+        heroSub.textContent = 'Object density matches water density';
+        statVfinalLabel.textContent = 'Final Velocity';
+        statExtraLabel.textContent = 'Specific Gravity';
+        statExtra.textContent = '1.00';
+      }
+
+      statVt.textContent = r.outcome === 'neutral' ? '0.00 m/s' : `${r.vt.toFixed(2)} m/s`;
+      statVfinal.textContent = r.outcome === 'neutral' ? '0.00 m/s' : `${r.finalVelocity.toFixed(2)} m/s`;
+      statMass.textContent = formatMass(r.mass);
+      statForce.textContent = r.netForce < 0.01 ? `${(r.netForce * 1000).toFixed(2)} mN` : `${r.netForce.toFixed(2)} N`;
+      statCd.textContent = r.cd.toFixed(2);
+    }
+
+    function setupCanvas(canvas, ctx) {
+      const rect = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    function resizeAllCanvases() {
+      setupCanvas(tankCanvas, tankCtx);
+      setupCanvas(depthCanvas, depthCtx);
+      setupCanvas(velCanvas, velCtx);
+    }
+
+    function interpolateState(t) {
+      const traj = simResult.trajectory;
+      if (!traj || traj.length === 0) return { y: 0, v: 0 };
+      if (t >= simResult.totalTime) {
+        const last = traj[traj.length - 1];
+        return { y: last.y, v: last.v };
+      }
+
+      let lo = 0, hi = traj.length - 1;
+      while (lo < hi - 1) {
+        const mid = (lo + hi) >> 1;
+        if (traj[mid].t <= t) lo = mid;
+        else hi = mid;
+      }
+      const p0 = traj[lo];
+      const p1 = traj[hi];
+      const span = p1.t - p0.t;
+      if (span <= 0) return { y: p0.y, v: p0.v };
+      const alpha = (t - p0.t) / span;
+      return {
+        y: p0.y + alpha * (p1.y - p0.y),
+        v: p0.v + alpha * (p1.v - p0.v)
+      };
+    }
+
+    function initBubbles() {
+      bubbles = Array.from({ length: 14 }, () => ({
+        x: 0.25 + Math.random() * 0.5,
+        y: Math.random(),
+        r: 1.5 + Math.random() * 2.5,
+        speed: 0.15 + Math.random() * 0.25
+      }));
+    }
+
+    function startAnimation() {
+      if (animFrame) cancelAnimationFrame(animFrame);
+      resizeAllCanvases();
+      initBubbles();
+      animStartTime = performance.now();
+
+      let speedMultiplier = 1;
+      if (simResult.totalTime > 5) {
+        speedMultiplier = simResult.totalTime / 4.2;
+      } else if (simResult.totalTime > 0 && simResult.totalTime < 0.8) {
+        speedMultiplier = simResult.totalTime / 1.2;
+      }
+
+      function loop(now) {
+        const realElapsed = (now - animStartTime) / 1000;
+        const simTime = Math.min(realElapsed * speedMultiplier, simResult.totalTime);
+        const postTime = Math.max(0, realElapsed - simResult.totalTime / speedMultiplier);
+
+        drawTank(simTime, postTime, speedMultiplier, now);
+        drawGraphs(simTime);
+
+        const keepAnimating =
+          simResult.outcome === 'float' ||
+          (simResult.outcome === 'sink' && simTime < simResult.totalTime);
+
+        if (keepAnimating) {
+          animFrame = requestAnimationFrame(loop);
+        }
+      }
+
+      animFrame = requestAnimationFrame(loop);
+    }
+
+    function drawTank(simTime, postTime, speedMultiplier, now) {
+      const w = tankCanvas.clientWidth;
+      const h = tankCanvas.clientHeight;
+      const ctx = tankCtx;
+      ctx.clearRect(0, 0, w, h);
+
+      const surfaceY = 46;
+      const bottomY = h - 18;
+      const waterH = bottomY - surfaceY;
+
+      // Sky
+      ctx.fillStyle = '#fffaf5';
+      ctx.fillRect(0, 0, w, surfaceY);
+
+      // Water gradient
+      const grad = ctx.createLinearGradient(0, surfaceY, 0, bottomY);
+      grad.addColorStop(0, '#bae6fd');
+      grad.addColorStop(1, '#0284c7');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, surfaceY, w, waterH);
+
+      // Animated subtle surface wave
+      ctx.strokeStyle = '#0ea5e9';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      for (let x = 0; x <= w; x += 8) {
+        const wave = Math.sin(x * 0.04 + now * 0.004) * 1.5;
+        if (x === 0) ctx.moveTo(x, surfaceY + wave);
+        else ctx.lineTo(x, surfaceY + wave);
+      }
+      ctx.stroke();
+
+      // Seabed
+      ctx.fillStyle = '#d6d3d1';
+      ctx.fillRect(0, bottomY, w, h - bottomY);
+
+      // Rising bubbles for motion
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
+      bubbles.forEach(b => {
+        const by = surfaceY + (((b.y - (now * 0.0002 * b.speed)) % 1 + 1) % 1) * waterH;
+        ctx.beginPath();
+        ctx.arc(b.x * w, by, b.r, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      // Depth markers
+      ctx.fillStyle = 'rgba(28, 25, 23, 0.6)';
+      ctx.font = '600 11px system-ui, sans-serif';
+      ctx.textAlign = 'left';
+      ctx.fillText('0 m (Surface)', 10, surfaceY - 8);
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+      ctx.fillText(`${simResult.depth} m`, 10, bottomY - 6);
+
+      // Object dimensions on canvas
+      const objW = state.shape === 'cylinder' ? 28 : 30;
+      const objH = state.shape === 'cylinder' ? 36 : 30;
+      const objCenterX = w / 2;
+      let objCenterY = surfaceY + waterH / 2;
+
+      if (simResult.outcome === 'sink') {
+        const { y } = interpolateState(simTime);
+        const progress = y / simResult.depth;
+        const startY = surfaceY + objH / 2 + 2;
+        const endY = bottomY - objH / 2;
+        objCenterY = startY + progress * (endY - startY);
+      } else if (simResult.outcome === 'float') {
+        const { y } = interpolateState(simTime);
+        const progress = y / simResult.depth;
+        const submergedFrac = simResult.rhoObj / simResult.rhoWater;
+
+        // Equilibrium center Y so exact submergedFrac is below surfaceY
+        const eqCenterY = surfaceY + (submergedFrac - 0.5) * objH;
+        const startY = bottomY - objH / 2;
+
+        if (simTime < simResult.totalTime) {
+          objCenterY = startY + progress * (eqCenterY - startY);
+        } else {
+          // Damped bobbing + gentle wave float at surface
+          const dampedBob = Math.exp(-2.2 * postTime) * 8 * Math.cos(6.5 * postTime);
+          const waveBob = 1.5 * Math.sin(now * 0.004);
+          objCenterY = eqCenterY + dampedBob + waveBob;
+        }
+      }
+
+      // Draw object
+      ctx.save();
+      ctx.fillStyle = simResult.outcome === 'sink' ? '#44403c' : simResult.outcome === 'float' ? '#f97316' : '#78716c';
+      ctx.strokeStyle = '#1c1917';
+      ctx.lineWidth = 2;
+
+      if (state.shape === 'sphere') {
+        ctx.beginPath();
+        ctx.arc(objCenterX, objCenterY, objW / 2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+      } else if (state.shape === 'cube') {
+        ctx.beginPath();
+        ctx.roundRect(objCenterX - objW / 2, objCenterY - objH / 2, objW, objH, 4);
+        ctx.fill();
+        ctx.stroke();
+      } else {
+        ctx.beginPath();
+        ctx.roundRect(objCenterX - objW / 2, objCenterY - objH / 2, objW, objH, 5);
+        ctx.fill();
+        ctx.stroke();
+      }
+      ctx.restore();
+
+      const speedText = speedMultiplier >= 10
+        ? `${Math.round(speedMultiplier)}x`
+        : `${speedMultiplier.toFixed(1)}x`;
+      animStatus.textContent = simResult.outcome === 'neutral'
+        ? 'Neutrally buoyant (stationary)'
+        : `Playback: ${speedText} | Elapsed: ${formatTime(simTime)}`;
+    }
+
+    function drawGraphs(simTime) {
+      drawSingleGraph({
+        canvas: depthCanvas,
+        ctx: depthCtx,
+        simTime,
+        type: 'depth'
+      });
+      drawSingleGraph({
+        canvas: velCanvas,
+        ctx: velCtx,
+        simTime,
+        type: 'velocity'
+      });
+    }
+
+    function drawSingleGraph({ canvas, ctx, simTime, type }) {
+      const w = canvas.clientWidth;
+      const h = canvas.clientHeight;
+      ctx.clearRect(0, 0, w, h);
+
+      const pad = { top: 14, right: 16, bottom: 28, left: 46 };
+      const plotW = w - pad.left - pad.right;
+      const plotH = h - pad.top - pad.bottom;
+
+      // Axes & Grid
+      ctx.strokeStyle = '#e7e5e4';
+      ctx.lineWidth = 1;
+      for (let i = 0; i <= 4; i++) {
+        const gy = pad.top + (plotH * i) / 4;
+        ctx.beginPath();
+        ctx.moveTo(pad.left, gy);
+        ctx.lineTo(w - pad.right, gy);
+        ctx.stroke();
+      }
+
+      ctx.strokeStyle = '#a8a29e';
+      ctx.beginPath();
+      ctx.moveTo(pad.left, pad.top);
+      ctx.lineTo(pad.left, h - pad.bottom);
+      ctx.lineTo(w - pad.right, h - pad.bottom);
+      ctx.stroke();
+
+      if (simResult.outcome === 'neutral') {
+        ctx.fillStyle = '#78716c';
+        ctx.font = '600 12px system-ui, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Neutrally Buoyant (No Motion)', pad.left + plotW / 2, pad.top + plotH / 2);
+        return;
+      }
+
+      const maxT = Math.max(simResult.totalTime, 1e-4);
+      const maxY = type === 'depth' ? simResult.depth : Math.max(simResult.vt * 1.1, 0.01);
+
+      const toX = (t) => pad.left + (t / maxT) * plotW;
+      const toY = (val) => {
+        if (type === 'depth') {
+          // 0 m at top, depth m at bottom
+          return pad.top + (val / maxY) * plotH;
+        }
+        // 0 m/s at bottom, maxY at top
+        return pad.top + plotH - (val / maxY) * plotH;
+      };
+
+      // Y-axis labels
+      ctx.fillStyle = '#78716c';
+      ctx.font = '500 10px system-ui, sans-serif';
+      ctx.textAlign = 'right';
+      for (let i = 0; i <= 2; i++) {
+        const frac = i / 2;
+        const val = type === 'depth' ? frac * maxY : (1 - frac) * maxY;
+        const label = val >= 10 ? val.toFixed(0) : val.toFixed(1);
+        ctx.fillText(label + (type === 'depth' ? 'm' : ''), pad.left - 6, pad.top + frac * plotH + 3);
+      }
+
+      // X-axis labels
+      ctx.textAlign = 'center';
+      ctx.fillText('0s', pad.left, h - 10);
+      ctx.fillText(formatTime(maxT / 2), pad.left + plotW / 2, h - 10);
+      ctx.fillText(formatTime(maxT), w - pad.right - 8, h - 10);
+
+      // Dashed terminal velocity line on velocity graph
+      if (type === 'velocity') {
+        const vtY = toY(simResult.vt);
+        ctx.save();
+        ctx.setLineDash([5, 4]);
+        ctx.strokeStyle = '#9a3412';
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.moveTo(pad.left, vtY);
+        ctx.lineTo(w - pad.right, vtY);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      // Plot curve
+      const traj = simResult.trajectory;
+      if (traj.length > 1) {
+        ctx.strokeStyle = '#f97316';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+
+        traj.forEach((pt, idx) => {
+          const depthVal = simResult.outcome === 'sink' ? pt.y : simResult.depth - pt.y;
+          const val = type === 'depth' ? depthVal : pt.v;
+          const px = toX(pt.t);
+          const py = toY(val);
+          if (idx === 0) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
+        });
+        ctx.stroke();
+
+        // Subtle fill under curve
+        ctx.lineTo(toX(traj[traj.length - 1].t), pad.top + plotH);
+        ctx.lineTo(toX(traj[0].t), pad.top + plotH);
+        ctx.closePath();
+        ctx.fillStyle = 'rgba(249, 115, 22, 0.1)';
+        ctx.fill();
+      }
+
+      // Live playhead dot
+      const cur = interpolateState(simTime);
+      const curDepth = simResult.outcome === 'sink' ? cur.y : simResult.depth - cur.y;
+      const dotX = toX(simTime);
+      const dotY = toY(type === 'depth' ? curDepth : cur.v);
+
+      ctx.fillStyle = '#ea580c';
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(dotX, dotY, 5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+    }
+
+    window.addEventListener('resize', () => {
+      resizeAllCanvases();
+      if (simResult) {
+        drawTank(simResult.totalTime, 0, 1, performance.now());
+        drawGraphs(simResult.totalTime);
+      }
+    });
+
+    runCalculation();
+  </script>
+</body>
+</html>
